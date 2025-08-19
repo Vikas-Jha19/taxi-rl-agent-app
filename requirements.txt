@@ -1,0 +1,5 @@
+streamlit
+numpy
+pillow
+# For the Taxi-v3 environment, you need to specify the extra package
+gymnasium[toy-text]
