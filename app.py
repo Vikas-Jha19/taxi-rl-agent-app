@@ -51,7 +51,7 @@ if 'state' not in st.session_state:
     st.session_state.truncated = False
     st.session_state.last_action_desc = "None"
     st.session_state.last_reward = 0
-    st.session_state.running_full_sim = False # <--- FIX: Initialize our new state variable
+    st.session_state.running_full_sim = False
 
 def reset_simulation():
     st.session_state.state, st.session_state.info = env.reset()
@@ -61,7 +61,7 @@ def reset_simulation():
     st.session_state.truncated = False
     st.session_state.last_action_desc = "None"
     st.session_state.last_reward = 0
-    st.session_state.running_full_sim = False # <--- FIX: Ensure reset also stops any running sim
+    st.session_state.running_full_sim = False
     st.success("Environment Reset!")
 
 # --- Helper Functions ---
@@ -78,16 +78,17 @@ with col1:
     
     if st.button("Run Full Simulation", use_container_width=True, type="primary"):
         reset_simulation()
-        st.session_state.running_full_sim = True # <--- FIX: Set the flag to start the simulation loop
-        # We need to rerun the script for the loop at the bottom to catch this
-        st.experimental_rerun()
+        st.session_state.running_full_sim = True
+        # FIX: Changed to st.rerun()
+        st.rerun()
 
     if st.button("Reset Environment", use_container_width=True):
         reset_simulation()
-        st.experimental_rerun()
+        # FIX: Changed to st.rerun()
+        st.rerun()
 
     if st.button("Step Manually", use_container_width=True):
-        st.session_state.running_full_sim = False # Stop any automatic simulation
+        st.session_state.running_full_sim = False
         if not st.session_state.terminated and not st.session_state.truncated:
             action = select_best_action(st.session_state.state, q_table)
             st.session_state.state, reward, term, trunc, _ = env.step(action)
@@ -99,7 +100,8 @@ with col1:
             st.session_state.last_reward = reward
         else:
             st.warning("Episode finished. Please reset the environment.")
-        st.experimental_rerun()
+        # FIX: Changed to st.rerun()
+        st.rerun()
 
 with col2:
     st.header("Simulation View")
@@ -108,7 +110,6 @@ with col2:
 
 def update_display():
     frame = env.render()
-    # FIX: Changed use_column_width to use_container_width
     frame_placeholder.image(frame, caption=f"Step: {st.session_state.steps}", use_container_width=True)
     
     with stats_placeholder.container():
@@ -118,13 +119,12 @@ def update_display():
 
         if st.session_state.terminated:
             st.success(f"Episode finished successfully in {st.session_state.steps} steps!")
-            st.session_state.running_full_sim = False # Stop running
+            st.session_state.running_full_sim = False
         elif st.session_state.truncated:
             st.warning(f"Episode truncated after {st.session_state.steps} steps.")
-            st.session_state.running_full_sim = False # Stop running
+            st.session_state.running_full_sim = False
 
 # --- Main Simulation Loop ---
-# FIX: Check our new dedicated state variable
 if st.session_state.get("running_full_sim", False):
     while not st.session_state.terminated and not st.session_state.truncated:
         action = select_best_action(st.session_state.state, q_table)
@@ -137,9 +137,9 @@ if st.session_state.get("running_full_sim", False):
         st.session_state.last_reward = reward
         
         update_display()
-        time.sleep(0.15) # Control animation speed
+        time.sleep(0.15)
 
-    st.session_state.running_full_sim = False # <--- FIX: Reset the flag when the loop is done
+    st.session_state.running_full_sim = False
 
 # Always update display at the end of a run
 update_display()
